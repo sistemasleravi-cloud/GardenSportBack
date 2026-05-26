@@ -21,7 +21,7 @@
         </div>
         <div class="sidebar-badge">
           <strong>¿No tienes cuenta?</strong>
-          <a href="https://wa.me/526620000000" target="_blank" style="color: #C2FF00; text-decoration: underline;">
+          <a href="https://wa.me/526453406382" target="_blank" style="color: #C2FF00; text-decoration: underline;">
             Comunícate con la administración de Garden Sports por Whatsapp
           </a> 
           para darte de alta en el sistema.
