@@ -212,7 +212,7 @@
           <div class="client-form-container">
             <div class="section">
               <div class="sec-head">
-                <span class="sec-num">NUEVO</span>
+                <span class="sec-num"></span>
                 <span class="sec-name">Registro de cuenta de cliente</span>
               </div>
               <form @submit.prevent="registrarCliente" class="client-form">
