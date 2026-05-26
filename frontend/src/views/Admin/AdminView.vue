@@ -66,11 +66,7 @@
             <span class="info-label">Confirmadas</span>
             <span class="info-val online">{{ contarEstado('CONFIRMADA') }}</span>
           </div>
-          <div class="info-divider"></div>
-          <div class="info-row">
-            <span class="info-label">Pendientes</span>
-            <span class="info-val">{{ contarEstado('PENDIENTE') }}</span>
-          </div>
+
           <div class="info-divider"></div>
           <div class="info-row">
             <span class="info-label">Canceladas</span>
