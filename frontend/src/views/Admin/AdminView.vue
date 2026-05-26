@@ -223,7 +223,7 @@
                   </div>
                   <div class="field">
                     <label>Nombre de Usuario</label>
-                    <input v-model="nuevoCliente.username" type="text" placeholder="ej. carlosm" required>
+                    <input v-model="nuevoCliente.username" type="text" placeholder="ej. carlosm" required autocomplete="off">
                   </div>
                 </div>
                 <div class="fields-row" style="margin-top: 1.5rem;">
