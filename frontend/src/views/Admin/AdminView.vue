@@ -233,7 +233,7 @@
                   </div>
                   <div class="field">
                     <label>Contraseña Acceso</label>
-                    <input v-model="nuevoCliente.password" type="password" placeholder="••••••••" required>
+                    <input v-model="nuevoCliente.password" type="password" placeholder="••••••••" required autocomplete="new-password">
                   </div>
                 </div>
                 <div class="submit-area" style="margin-top: 2.5rem;">
