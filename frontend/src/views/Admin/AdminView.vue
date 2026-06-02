@@ -169,8 +169,12 @@
                     <div class="field">
                       <label>Cancha</label>
                       <select v-model="nuevaReservaAdmin.cancha" required class="custom-select">
-                        <option value="" disabled selected>Selecciona una cancha</option>
-                        <option v-for="c in canchasLista" :key="c.id" :value="c.id">{{ c.nombre }}</option>
+                        <option value="" disabled selected>
+                          {{ (!nuevaReservaAdmin.fecha || !nuevaReservaAdmin.hora_inicio || !nuevaReservaAdmin.hora_fin) ? 'Asigna fecha y hora primero' : 'Selecciona una cancha' }}
+                        </option>
+                        <option v-for="c in canchasParaReserva" :key="c.id" :value="c.id" :disabled="c.ocupada">
+                          {{ c.label }}
+                        </option>
                       </select>
                     </div>
                   </div>
@@ -417,6 +421,33 @@ const monitorCanchas = computed(() => {
   })
 })
 
+const canchasParaReserva = computed(() => {
+  const fecha = nuevaReservaAdmin.value.fecha
+  const inicio = nuevaReservaAdmin.value.hora_inicio
+  const fin = nuevaReservaAdmin.value.hora_fin
+
+  if (!fecha || !inicio || !fin) {
+    return canchasLista.value.map(c => ({ ...c, ocupada: false, label: c.nombre }))
+  }
+
+  const inicioMins = parseInt(inicio.split(':')[0]) * 60 + parseInt(inicio.split(':')[1])
+  const finMins = parseInt(fin.split(':')[0]) * 60 + parseInt(fin.split(':')[1])
+
+  return canchasLista.value.map(c => {
+    const ocupada = reservas.value.some(r => {
+      if (r.estado !== 'CONFIRMADA' || r.fecha !== fecha || r.cancha !== c.id) return false
+      let rInicioMins = parseInt(r.hora_inicio.split(':')[0]) * 60 + parseInt(r.hora_inicio.split(':')[1])
+      let rFinMins = r.hora_fin.startsWith('00:00') ? 24 * 60 : parseInt(r.hora_fin.split(':')[0]) * 60 + parseInt(r.hora_fin.split(':')[1])
+      return (rInicioMins < finMins && rFinMins > inicioMins)
+    })
+    return {
+      ...c,
+      ocupada,
+      label: ocupada ? `${c.nombre} (OCUPADA)` : `${c.nombre} (Disponible)`
+    }
+  })
+})
+
 const reservasFiltradas = computed(() =>
   filtroActivo.value === 'TODAS' ? reservas.value : reservas.value.filter(r => r.estado === filtroActivo.value)
 )
@@ -457,6 +488,14 @@ const cargarDatos = async () => {
 const crearReservaAdmin = async () => {
   guardandoReserva.value = true
   mensajeReserva.value = { texto: '', error: false }
+
+  const canchaSeleccionada = canchasParaReserva.value.find(c => c.id === nuevaReservaAdmin.value.cancha)
+  if (canchaSeleccionada && canchaSeleccionada.ocupada) {
+    mensajeReserva.value = { texto: 'La cancha está ocupada en ese horario. Elige otra.', error: true }
+    guardandoReserva.value = false
+    return
+  }
+
   try {
     const payload = {
       cancha: nuevaReservaAdmin.value.cancha,
@@ -794,6 +833,7 @@ const cerrarSesion = () => {
 }
 .custom-select:focus { border-color: #C2FF00; }
 .custom-select option { background: #161922; color: #FFF; }
+.custom-select option:disabled { color: #FF6060; }
 
 .date-input { color-scheme: dark; }
 .time-group { display: flex; gap: 1rem; flex-direction: row; }
