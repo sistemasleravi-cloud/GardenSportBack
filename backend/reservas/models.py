@@ -20,10 +20,10 @@ class Reserva(models.Model):
     cancha = models.ForeignKey(Cancha, on_delete=models.CASCADE)
     nombre_cliente = models.CharField(max_length=200)
     telefono_cliente = models.CharField(max_length=20)
+    nombre_invitado = models.CharField(max_length=100, blank=True, null=True)
     fecha = models.DateField()
     hora_inicio = models.TimeField()
     hora_fin = models.TimeField()
-    # Las reservas entran automáticamente como confirmadas
     estado = models.CharField(max_length=20, default='CONFIRMADA')
 
     def __str__(self):
