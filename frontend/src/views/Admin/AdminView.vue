@@ -38,7 +38,20 @@
             </div>
             <div class="login-field">
               <label>Contraseña</label>
-              <input v-model="credenciales.password" type="password" placeholder="" required>
+              <div class="password-wrapper">
+                <input v-model="credenciales.password" :type="mostrarPasswordLogin ? 'text' : 'password'" placeholder="" required>
+                <button type="button" class="toggle-password" @click="mostrarPasswordLogin = !mostrarPasswordLogin" :aria-label="mostrarPasswordLogin ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+                  <svg v-if="!mostrarPasswordLogin" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                  <svg v-else xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                    <line x1="1" y1="1" x2="23" y2="23"/>
+                  </svg>
+                </button>
+              </div>
             </div>
             <button type="submit" class="login-btn" :disabled="cargando">
               {{ cargando ? 'Verificando...' : 'Iniciar sesión' }}
@@ -221,7 +234,20 @@
                     </div>
                     <div class="field">
                       <label>Contraseña Acceso</label>
-                      <input v-model="nuevoCliente.password" type="password" placeholder="••••••••" required autocomplete="new-password">
+                      <div class="password-wrapper password-wrapper--underline">
+                        <input v-model="nuevoCliente.password" :type="mostrarPasswordCliente ? 'text' : 'password'" placeholder="••••••••" required autocomplete="new-password">
+                        <button type="button" class="toggle-password toggle-password--underline" @click="mostrarPasswordCliente = !mostrarPasswordCliente" :aria-label="mostrarPasswordCliente ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+                          <svg v-if="!mostrarPasswordCliente" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                          </svg>
+                          <svg v-else xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                            <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                            <line x1="1" y1="1" x2="23" y2="23"/>
+                          </svg>
+                        </button>
+                      </div>
                     </div>
                   </div>
                   <div class="submit-area" style="margin-top:2.5rem">
@@ -299,6 +325,8 @@ const guardandoCliente = ref(false)
 const ahora = ref(new Date())
 const nombreUsuario = ref('')
 const sidebarOpen = ref(false)
+const mostrarPasswordLogin = ref(false)
+const mostrarPasswordCliente = ref(false)
 let timerInterval = null
 
 const credenciales = ref({ username: '', password: '' })
@@ -406,6 +434,7 @@ const registrarCliente = async () => {
     await axios.post('/api/users/', nuevoCliente.value)
     mensajeCliente.value = { texto: 'Cliente dado de alta exitosamente.', error: false }
     nuevoCliente.value = { username: '', password: '', first_name: '', telefono: '' }
+    mostrarPasswordCliente.value = false
     await cargarDatos()
   } catch (error) {
     if (error.response?.data) {
@@ -468,6 +497,7 @@ const iniciarSesion = async () => {
     nombreUsuario.value = credenciales.value.username
     isAuthenticated.value = true
     credenciales.value = { username: '', password: '' }
+    mostrarPasswordLogin.value = false
     cargarDatos()
     timerInterval = setInterval(() => { ahora.value = new Date(); cargarDatos() }, 30000)
   } catch (error) {
@@ -491,6 +521,8 @@ const cerrarSesion = () => {
   filtroActivo.value = 'TODAS'
   seccionActiva.value = 'monitor'
   sidebarOpen.value = false
+  mostrarPasswordLogin.value = false
+  mostrarPasswordCliente.value = false
   if (timerInterval) clearInterval(timerInterval)
 }
 </script>
@@ -572,6 +604,14 @@ const cerrarSesion = () => {
 .login-btn:hover { background: #D0FF33; }
 .login-btn:disabled { background: #2A2D3D; color: #5A5E70; cursor: not-allowed; }
 .login-err { background: rgba(255,80,80,0.07); border: 1px solid rgba(255,80,80,0.2); color: #FF7070; padding: 0.8rem 1rem; border-radius: 8px; font-size: 12px; font-weight: 600; text-align: center; margin-top: 1rem; }
+
+.password-wrapper { position: relative; display: flex; align-items: center; }
+.password-wrapper input { padding-right: 2.8rem; }
+.toggle-password { position: absolute; right: 0.75rem; background: transparent; border: none; cursor: pointer; color: #5A5E70; display: flex; align-items: center; padding: 0; transition: color 0.15s; }
+.toggle-password:hover { color: #C2FF00; }
+
+.password-wrapper--underline input { padding-right: 2rem; }
+.toggle-password--underline { right: 0; }
 
 .main { padding: 3rem 3.5rem; flex: 1; }
 .main-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 2rem; }
