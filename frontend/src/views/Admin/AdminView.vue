@@ -171,7 +171,7 @@
               <div v-if="reservasFiltradas.length === 0" class="empty">No hay reservas con este filtro.</div>
               <div v-for="reserva in reservasFiltradas" :key="reserva.id" class="table-row reserva-row">
                 <div class="row-client">
-                  <div class="td-name">{{ reserva.nombre_cliente }}</div>
+                  <div class="td-name">{{ reserva.nombre_invitado || reserva.nombre_cliente }}</div>
                   <div class="td-phone">{{ reserva.telefono_cliente }}</div>
                 </div>
                 <div class="row-court td-court">{{ reserva.cancha_nombre }}</div>
@@ -363,7 +363,7 @@ const monitorCanchas = computed(() => {
       let horasFaltan = Math.floor(faltanMin / 60)
       let minRestantes = faltanMin % 60
       let tiempoTxt = horasFaltan > 0 ? `${horasFaltan}h ${minRestantes}m` : `${minRestantes} min`
-      return { ...c, ocupada: true, cliente: activa.nombre_cliente, tiempoRestante: tiempoTxt }
+      return { ...c, ocupada: true, cliente: activa.nombre_invitado || activa.nombre_cliente, tiempoRestante: tiempoTxt }
     }
     return { ...c, ocupada: false, cliente: null, tiempoRestante: null }
   })
