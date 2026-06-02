@@ -40,7 +40,20 @@
             </div>
             <div class="login-field">
               <label>Contraseña</label>
-              <input v-model="credenciales.password" type="password" placeholder="" required>
+              <div class="password-wrapper">
+                <input v-model="credenciales.password" :type="mostrarPassword ? 'text' : 'password'" placeholder="" required>
+                <button type="button" class="toggle-password" @click="mostrarPassword = !mostrarPassword" :aria-label="mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+                  <svg v-if="!mostrarPassword" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                  <svg v-else xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                    <line x1="1" y1="1" x2="23" y2="23"/>
+                  </svg>
+                </button>
+              </div>
             </div>
             <button type="submit" class="login-btn" :disabled="cargandoLogin">
               {{ cargandoLogin ? 'Verificando...' : 'Iniciar sesión' }}
@@ -183,6 +196,7 @@ const cargandoLogin = ref(false)
 const mensajeError = ref('')
 const credenciales = ref({ username: '', password: '' })
 const nombreUsuario = ref('')
+const mostrarPassword = ref(false)
 
 const canchas = ref([])
 const canchasOcupadas = ref([])
@@ -235,6 +249,7 @@ const iniciarSesion = async () => {
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
     isAuthenticated.value = true
     credenciales.value = { username: '', password: '' }
+    mostrarPassword.value = false
   } catch {
     mensajeError.value = 'Credenciales incorrectas'
   } finally {
@@ -404,6 +419,11 @@ const limpiarFormulario = () => {
 .login-btn:hover { background: #D0FF33; }
 .login-btn:disabled { background: #2A2D3D; color: #5A5E70; cursor: not-allowed; }
 .login-err { background: rgba(255, 80, 80, 0.07); border: 1px solid rgba(255, 80, 80, 0.2); color: #FF7070; padding: 0.8rem 1rem; border-radius: 8px; font-size: 12px; font-weight: 600; text-align: center; margin-top: 1rem; }
+
+.password-wrapper { position: relative; display: flex; align-items: center; }
+.password-wrapper input { padding-right: 2.8rem; }
+.toggle-password { position: absolute; right: 0.75rem; background: transparent; border: none; cursor: pointer; color: #5A5E70; display: flex; align-items: center; padding: 0; transition: color 0.15s; }
+.toggle-password:hover { color: #C2FF00; }
 
 .main { padding: 3rem 3.5rem; overflow-y: auto; }
 .main-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 2rem; }
