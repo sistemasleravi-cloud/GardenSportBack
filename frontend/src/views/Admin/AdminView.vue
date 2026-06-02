@@ -154,6 +154,50 @@
           </div>
 
           <div v-if="seccionActiva === 'reservas'">
+            <div class="client-form-container" style="margin-bottom: 2.5rem;">
+              <div class="section">
+                <div class="sec-head">
+                  <span class="sec-num"></span>
+                  <span class="sec-name">Crear Reserva (Administrador)</span>
+                </div>
+                <form @submit.prevent="crearReservaAdmin" class="client-form">
+                  <div class="fields-row">
+                    <div class="field">
+                      <label>Nombre del Invitado/Cliente</label>
+                      <input v-model="nuevaReservaAdmin.nombre_invitado" type="text" placeholder="Ej. Carlos Mendoza" required>
+                    </div>
+                    <div class="field">
+                      <label>Cancha</label>
+                      <select v-model="nuevaReservaAdmin.cancha" required class="custom-select">
+                        <option value="" disabled selected>Selecciona una cancha</option>
+                        <option v-for="c in canchasLista" :key="c.id" :value="c.id">{{ c.nombre }}</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="fields-row" style="margin-top:1.5rem">
+                    <div class="field">
+                      <label>Fecha</label>
+                      <input v-model="nuevaReservaAdmin.fecha" type="date" required class="date-input">
+                    </div>
+                    <div class="field time-group">
+                      <div class="sub-field">
+                        <label>Hora Inicio</label>
+                        <input v-model="nuevaReservaAdmin.hora_inicio" type="time" required class="time-input">
+                      </div>
+                      <div class="sub-field">
+                        <label>Hora Fin</label>
+                        <input v-model="nuevaReservaAdmin.hora_fin" type="time" required class="time-input">
+                      </div>
+                    </div>
+                  </div>
+                  <div class="submit-area" style="margin-top:2.5rem">
+                    <button type="submit" class="btn-main" :disabled="guardandoReserva">{{ guardandoReserva ? 'Creando...' : 'Confirmar Reserva' }}</button>
+                  </div>
+                  <div v-if="mensajeReserva.texto" :class="['alert', mensajeReserva.error ? 'err' : 'ok']">{{ mensajeReserva.texto }}</div>
+                </form>
+              </div>
+            </div>
+
             <div class="filters-row">
               <div v-for="f in filtros" :key="f.valor" :class="['filter-pill', { active: filtroActivo === f.valor }]" @click="filtroActivo = f.valor">
                 {{ f.etiqueta }}
@@ -322,6 +366,7 @@ const seccionActiva = ref('monitor')
 const procesandoId = ref(null)
 const procesandoClienteId = ref(null)
 const guardandoCliente = ref(false)
+const guardandoReserva = ref(false)
 const ahora = ref(new Date())
 const nombreUsuario = ref('')
 const sidebarOpen = ref(false)
@@ -332,6 +377,9 @@ let timerInterval = null
 const credenciales = ref({ username: '', password: '' })
 const nuevoCliente = ref({ username: '', password: '', first_name: '', telefono: '' })
 const mensajeCliente = ref({ texto: '', error: false })
+
+const nuevaReservaAdmin = ref({ cancha: '', nombre_invitado: '', fecha: '', hora_inicio: '', hora_fin: '' })
+const mensajeReserva = ref({ texto: '', error: false })
 
 const saludoTiempo = computed(() => {
   const hora = new Date().getHours()
@@ -403,6 +451,31 @@ const cargarDatos = async () => {
       cerrarSesion()
       mensajeError.value = 'Acceso denegado. Se requieren permisos de administrador.'
     }
+  }
+}
+
+const crearReservaAdmin = async () => {
+  guardandoReserva.value = true
+  mensajeReserva.value = { texto: '', error: false }
+  try {
+    const payload = {
+      cancha: nuevaReservaAdmin.value.cancha,
+      nombre_cliente: nombreUsuario.value,
+      telefono_cliente: 'Administración',
+      nombre_invitado: nuevaReservaAdmin.value.nombre_invitado,
+      fecha: nuevaReservaAdmin.value.fecha,
+      hora_inicio: nuevaReservaAdmin.value.hora_inicio,
+      hora_fin: nuevaReservaAdmin.value.hora_fin,
+      estado: 'CONFIRMADA'
+    }
+    await axios.post('/api/reservas/', payload)
+    mensajeReserva.value = { texto: 'Reserva creada exitosamente.', error: false }
+    nuevaReservaAdmin.value = { cancha: '', nombre_invitado: '', fecha: '', hora_inicio: '', hora_fin: '' }
+    await cargarDatos()
+  } catch (error) {
+    mensajeReserva.value = { texto: 'Error al crear la reserva. Verifica los datos.', error: true }
+  } finally {
+    guardandoReserva.value = false
   }
 }
 
@@ -704,6 +777,31 @@ const cerrarSesion = () => {
 .field input { background: transparent; border: none; border-bottom: 1px solid #3A3D50; padding: 0.6rem 0; font-family: 'Karla', sans-serif; font-size: 15px; color: #FFFFFF; outline: none; transition: border-color 0.15s; width: 100%; }
 .field input:focus { border-color: #C2FF00; }
 .field input::placeholder { color: #5A5E70; }
+
+.custom-select {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #3A3D50;
+  padding: 0.6rem 0;
+  font-family: 'Karla', sans-serif;
+  font-size: 15px;
+  color: #FFFFFF;
+  outline: none;
+  transition: border-color 0.15s;
+  width: 100%;
+  cursor: pointer;
+  appearance: none;
+}
+.custom-select:focus { border-color: #C2FF00; }
+.custom-select option { background: #161922; color: #FFF; }
+
+.date-input { color-scheme: dark; }
+.time-group { display: flex; gap: 1rem; flex-direction: row; }
+.sub-field { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.sub-field label { font-family: 'Syne', sans-serif; font-size: 9px; font-weight: 700; color: #8A8E9B; letter-spacing: 0.2em; text-transform: uppercase; }
+.sub-field input { background: transparent; border: none; border-bottom: 1px solid #3A3D50; padding: 0.6rem 0; font-family: 'Karla', sans-serif; font-size: 15px; color: #FFFFFF; outline: none; transition: border-color 0.15s; width: 100%; color-scheme: dark; }
+.sub-field input:focus { border-color: #C2FF00; }
+
 .submit-area { display: grid; grid-template-columns: 1fr; gap: 10px; }
 .btn-main { background: #C2FF00; color: #080A0C; font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; border: none; border-radius: 10px; padding: 1rem 2rem; cursor: pointer; transition: background 0.15s; width: max-content; }
 .btn-main:hover { background: #D0FF33; }
@@ -811,6 +909,7 @@ const cerrarSesion = () => {
 
   .client-form-container { padding: 1.25rem; }
   .fields-row { grid-template-columns: 1fr; gap: 1.25rem; }
+  .time-group { grid-template-columns: 1fr; gap: 1.25rem; flex-direction: column; }
   .btn-main { width: 100%; text-align: center; }
 }
 </style>
