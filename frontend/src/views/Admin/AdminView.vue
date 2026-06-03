@@ -138,9 +138,10 @@
                   <div :class="['monitor-status', cancha.ocupada ? 'status-oc' : 'status-lib']">{{ cancha.ocupada ? 'EN USO' : 'LIBRE' }}</div>
                 </div>
                 <div class="monitor-name">{{ cancha.nombre }}</div>
+                
                 <div v-if="cancha.ocupada" class="monitor-details">
                   <div class="m-detail-row">
-                    <span class="m-label">Cliente</span>
+                    <span class="m-label">Cliente actual</span>
                     <span class="m-val">{{ cancha.cliente }}</span>
                   </div>
                   <div class="m-detail-row">
@@ -149,6 +150,15 @@
                   </div>
                 </div>
                 <div v-else class="monitor-details empty-state">Disponible para reservación en este momento</div>
+
+                <div v-if="cancha.siguiente" class="monitor-next">
+                  <div class="m-detail-row">
+                    <span class="m-label">Próxima reserva</span>
+                    <span class="m-val">{{ cancha.siguiente }}</span>
+                    <span class="m-val next-time">{{ cancha.horaSiguiente }}</span>
+                  </div>
+                </div>
+
               </div>
             </div>
           </div>
@@ -416,25 +426,70 @@ const filtros = [
   { valor: 'CANCELADA', etiqueta: 'Canceladas' }
 ]
 
+const formatearFecha = (f) =>
+  new Date(f + 'T00:00:00').toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })
+
+const formatearHora = (h) => {
+  if (h === '00:00:00') return '12:00 AM'
+  const horaInt = parseInt(h.substring(0, 2))
+  return horaInt > 12 ? `${horaInt - 12}:00 PM` : `${horaInt}:00 PM`
+}
+
+const claseEstado = (estado) => {
+  if (estado === 'CONFIRMADA') return 'badge-ok'
+  if (estado === 'PENDIENTE') return 'badge-pend'
+  return 'badge-cancel'
+}
+
 const monitorCanchas = computed(() => {
   const hoyStr = new Date(ahora.value.getTime() - (ahora.value.getTimezoneOffset() * 60000)).toISOString().split('T')[0]
   const minActual = ahora.value.getHours() * 60 + ahora.value.getMinutes()
+  
   return canchasLista.value.map(c => {
-    const activa = reservas.value.find(r => {
-      if (r.estado !== 'CONFIRMADA' || r.fecha !== hoyStr) return false
+    const reservasHoy = reservas.value.filter(r => r.estado === 'CONFIRMADA' && r.fecha === hoyStr && r.cancha === c.id)
+    
+    let activa = null
+    let siguientes = []
+    
+    reservasHoy.forEach(r => {
       let inicio = parseInt(r.hora_inicio.split(':')[0]) * 60 + parseInt(r.hora_inicio.split(':')[1])
       let fin = r.hora_fin.startsWith('00:00') ? 24 * 60 : parseInt(r.hora_fin.split(':')[0]) * 60 + parseInt(r.hora_fin.split(':')[1])
-      return r.cancha === c.id && minActual >= inicio && minActual < fin
+      
+      if (minActual >= inicio && minActual < fin) {
+        activa = r
+      } else if (inicio >= minActual) {
+        siguientes.push({ r, inicio })
+      }
     })
+    
+    siguientes.sort((a, b) => a.inicio - b.inicio)
+    const proxima = siguientes.length > 0 ? siguientes[0].r : null
+    
+    let data = {
+      ...c,
+      ocupada: false,
+      cliente: null,
+      tiempoRestante: null,
+      siguiente: null,
+      horaSiguiente: null
+    }
+    
     if (activa) {
       let fin = activa.hora_fin.startsWith('00:00') ? 24 * 60 : parseInt(activa.hora_fin.split(':')[0]) * 60 + parseInt(activa.hora_fin.split(':')[1])
       let faltanMin = fin - minActual
       let horasFaltan = Math.floor(faltanMin / 60)
       let minRestantes = faltanMin % 60
-      let tiempoTxt = horasFaltan > 0 ? `${horasFaltan}h ${minRestantes}m` : `${minRestantes} min`
-      return { ...c, ocupada: true, cliente: activa.nombre_invitado || activa.nombre_cliente, tiempoRestante: tiempoTxt }
+      data.ocupada = true
+      data.cliente = activa.nombre_invitado || activa.nombre_cliente
+      data.tiempoRestante = horasFaltan > 0 ? `${horasFaltan}h ${minRestantes}m` : `${minRestantes} min`
     }
-    return { ...c, ocupada: false, cliente: null, tiempoRestante: null }
+    
+    if (proxima) {
+      data.siguiente = proxima.nombre_invitado || proxima.nombre_cliente
+      data.horaSiguiente = formatearHora(proxima.hora_inicio) + ' a ' + formatearHora(proxima.hora_fin)
+    }
+    
+    return data
   })
 })
 
@@ -470,21 +525,6 @@ const reservasFiltradas = computed(() =>
 )
 
 const contarEstado = (estado) => reservas.value.filter(r => r.estado === estado).length
-
-const formatearFecha = (f) =>
-  new Date(f + 'T00:00:00').toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })
-
-const formatearHora = (h) => {
-  if (h === '00:00:00') return '12:00 AM'
-  const horaInt = parseInt(h.substring(0, 2))
-  return horaInt > 12 ? `${horaInt - 12}:00 PM` : `${horaInt}:00 PM`
-}
-
-const claseEstado = (estado) => {
-  if (estado === 'CONFIRMADA') return 'badge-ok'
-  if (estado === 'PENDIENTE') return 'badge-pend'
-  return 'badge-cancel'
-}
 
 const cargarDatos = async () => {
   try {
@@ -779,6 +819,9 @@ const cerrarSesion = () => {
 .m-val { font-family: 'Karla', sans-serif; font-size: 15px; color: #FFFFFF; font-weight: 600; }
 .m-val.time { color: #C2FF00; }
 .empty-state { font-size: 12px; color: #5A5E70; font-family: 'Karla', sans-serif; font-style: italic; }
+
+.monitor-next { border-top: 1px dashed #3A3D50; margin-top: 1.2rem; padding-top: 1.2rem; }
+.next-time { font-family: 'Bebas Neue', sans-serif; font-size: 15px; color: #A0A4B8; letter-spacing: 0.04em; margin-top: 2px; }
 
 .filters-row { display: flex; gap: 8px; margin-bottom: 1.5rem; flex-wrap: wrap; }
 .filter-pill { background: #161922; border: 1px solid #2A2D3D; border-radius: 6px; padding: 0.4rem 0.9rem; font-family: 'Syne', sans-serif; font-size: 9px; font-weight: 700; color: #8A8E9B; letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer; transition: border-color 0.15s, color 0.15s; }
