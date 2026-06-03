@@ -422,7 +422,6 @@ const saludoTiempo = computed(() => {
 const filtros = [
   { valor: 'TODAS', etiqueta: 'Todas' },
   { valor: 'CONFIRMADA', etiqueta: 'Confirmadas' },
-  { valor: 'PENDIENTE', etiqueta: 'Pendientes' },
   { valor: 'CANCELADA', etiqueta: 'Canceladas' }
 ]
 
