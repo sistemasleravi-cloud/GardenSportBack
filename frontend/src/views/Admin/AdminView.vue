@@ -273,7 +273,7 @@
                 </div>
                 <div class="mobile-card-footer">
                   <span :class="['badge', claseEstado(reserva.estado)]">{{ reserva.estado }}</span>
-                  <div class="row-actions">
+                  <div class="mobile-actions">
                     <button v-if="reserva.estado === 'PENDIENTE'" class="btn-action-confirm" @click="confirmarReservaAdmin(reserva.id)" :disabled="procesandoId === reserva.id">{{ procesandoId === reserva.id ? '...' : 'Aprobar' }}</button>
                     <button v-if="reserva.estado !== 'CANCELADA'" class="btn-action-cancel" @click="cancelarReserva(reserva.id)" :disabled="procesandoId === reserva.id">{{ procesandoId === reserva.id ? '...' : 'Cancelar' }}</button>
                   </div>
@@ -366,7 +366,7 @@
                 </div>
                 <div class="mobile-card-footer">
                   <span :class="['badge', cliente.is_active ? 'badge-ok' : 'badge-cancel']">{{ cliente.is_active ? 'ACTIVO' : 'PAUSADO' }}</span>
-                  <div class="row-actions">
+                  <div class="mobile-actions">
                     <button :class="cliente.is_active ? 'btn-action-warn' : 'btn-action-confirm'" @click="cambiarEstadoCliente(cliente)" :disabled="procesandoClienteId === cliente.id">{{ procesandoClienteId === cliente.id ? '...' : (cliente.is_active ? 'Pausar' : 'Activar') }}</button>
                     <button class="btn-action-cancel" @click="eliminarCliente(cliente.id)" :disabled="procesandoClienteId === cliente.id">{{ procesandoClienteId === cliente.id ? '...' : 'Eliminar' }}</button>
                   </div>
@@ -873,6 +873,7 @@ const cerrarSesion = () => {
 .td-date { font-family: 'Karla', sans-serif; font-size: 13px; color: #A0A4B8; }
 .td-time { font-family: 'Bebas Neue', sans-serif; font-size: 16px; color: #A0A4B8; letter-spacing: 0.04em; }
 .row-actions { display: flex; justify-content: flex-end; gap: 6px; }
+.mobile-actions { display: flex; justify-content: flex-end; gap: 6px; }
 
 .badge { display: inline-block; padding: 3px 10px; border-radius: 4px; font-family: 'Syne', sans-serif; font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
 .badge-ok { background: rgba(194,255,0,0.08); border: 1px solid rgba(194,255,0,0.2); color: #C2FF00; }
@@ -1030,6 +1031,11 @@ const cerrarSesion = () => {
   .mcm-val { font-family: 'Karla', sans-serif; font-size: 13px; color: #A0A4B8; font-weight: 500; }
   .td-court-sm { font-family: 'Bebas Neue', sans-serif; font-size: 15px; letter-spacing: 0.04em; }
   .td-time-sm { font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 0.03em; }
+
+  .filters-header { flex-direction: column; align-items: stretch; gap: 0.75rem; margin-bottom: 1.5rem; }
+  .filters-row { margin-bottom: 0; }
+  .court-filter { width: 100%; }
+  .filter-select { width: 100%; }
 
   .client-form-container { padding: 1.25rem; }
   .fields-row { grid-template-columns: 1fr; gap: 1.25rem; }
