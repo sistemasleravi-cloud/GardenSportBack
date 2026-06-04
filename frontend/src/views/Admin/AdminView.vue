@@ -218,11 +218,20 @@
               </div>
             </div>
 
-            <div class="filters-row">
-              <div v-for="f in filtros" :key="f.valor" :class="['filter-pill', { active: filtroActivo === f.valor }]" @click="filtroActivo = f.valor">
-                {{ f.etiqueta }}
+            <div class="filters-header">
+              <div class="filters-row">
+                <div v-for="f in filtros" :key="f.valor" :class="['filter-pill', { active: filtroActivo === f.valor }]" @click="filtroActivo = f.valor">
+                  {{ f.etiqueta }}
+                </div>
+              </div>
+              <div class="court-filter">
+                <select v-model="filtroCanchaActivo" class="custom-select filter-select">
+                  <option value="TODAS">Todas las canchas</option>
+                  <option v-for="c in canchasLista" :key="c.id" :value="c.id">{{ c.nombre }}</option>
+                </select>
               </div>
             </div>
+
             <div class="table-wrap">
               <div class="desktop-head reservas-head">
                 <span class="th">Cliente</span>
@@ -382,6 +391,7 @@ const reservas = ref([])
 const clientes = ref([])
 const canchasLista = ref([])
 const filtroActivo = ref('TODAS')
+const filtroCanchaActivo = ref('TODAS')
 const seccionActiva = ref('monitor')
 const procesandoId = ref(null)
 const procesandoClienteId = ref(null)
@@ -519,9 +529,19 @@ const canchasParaReserva = computed(() => {
   })
 })
 
-const reservasFiltradas = computed(() =>
-  filtroActivo.value === 'TODAS' ? reservas.value : reservas.value.filter(r => r.estado === filtroActivo.value)
-)
+const reservasFiltradas = computed(() => {
+  let resultado = reservas.value
+  
+  if (filtroActivo.value !== 'TODAS') {
+    resultado = resultado.filter(r => r.estado === filtroActivo.value)
+  }
+  
+  if (filtroCanchaActivo.value !== 'TODAS') {
+    resultado = resultado.filter(r => r.cancha === filtroCanchaActivo.value)
+  }
+  
+  return resultado
+})
 
 const contarEstado = (estado) => reservas.value.filter(r => r.estado === estado).length
 
@@ -687,6 +707,7 @@ const cerrarSesion = () => {
   clientes.value = []
   canchasLista.value = []
   filtroActivo.value = 'TODAS'
+  filtroCanchaActivo.value = 'TODAS'
   seccionActiva.value = 'monitor'
   sidebarOpen.value = false
   mostrarPasswordLogin.value = false
@@ -822,9 +843,13 @@ const cerrarSesion = () => {
 .monitor-next { border-top: 1px dashed #3A3D50; margin-top: 1.2rem; padding-top: 1.2rem; }
 .next-time { font-family: 'Bebas Neue', sans-serif; font-size: 15px; color: #A0A4B8; letter-spacing: 0.04em; margin-top: 2px; }
 
-.filters-row { display: flex; gap: 8px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.filters-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.filters-row { display: flex; gap: 8px; margin-bottom: 0; flex-wrap: wrap; }
 .filter-pill { background: #161922; border: 1px solid #2A2D3D; border-radius: 6px; padding: 0.4rem 0.9rem; font-family: 'Syne', sans-serif; font-size: 9px; font-weight: 700; color: #8A8E9B; letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer; transition: border-color 0.15s, color 0.15s; }
 .filter-pill.active { border-color: #C2FF00; color: #C2FF00; }
+
+.filter-select { border: 1px solid #2A2D3D; border-radius: 6px; padding: 0.4rem 2rem 0.4rem 0.9rem; font-family: 'Syne', sans-serif; font-size: 9px; font-weight: 700; color: #8A8E9B; letter-spacing: 0.14em; text-transform: uppercase; width: auto; background-color: #161922; cursor: pointer; appearance: none; }
+.filter-select:focus { border-color: #C2FF00; color: #C2FF00; outline: none; }
 
 .table-wrap { background: #161922; border: 1px solid #2A2D3D; border-radius: 12px; overflow: hidden; }
 .desktop-head { display: grid; padding: 0.9rem 1.5rem; border-bottom: 1px solid #2A2D3D; }
